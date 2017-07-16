@@ -35,12 +35,13 @@ string hasData(string s) {
 
 void printUsage()
 {
-  cout << "Usage: UnscentedKF [-a | -p | -c | -r | -h]" << endl;
+  cout << "Usage: UnscentedKF [-a | -p | -c | -r | -u | -h]" << endl;
   cout << "CmdLine args description:" << endl;
   cout << "-a   Test sigmapoint augmentation" << endl;
   cout << "-p   Test sigmapoint prediction" << endl;
   cout << "-c   Test mean and covariance prediction" << endl;
   cout << "-r   Test radar measurement prediction" << endl;
+  cout << "-u   Test update mean and covariance by radar measurements" << endl;
   cout << "-h            Help description" << endl;
 }
 
@@ -74,6 +75,12 @@ int main(int argc, char **argv)
   if (input.cmdOptionExists("-r"))
   {
     test_predict_radar_measurement();
+    return 0;
+  }
+
+  if (input.cmdOptionExists("-u"))
+  {
+    test_update_radar_state();
     return 0;
   }
 

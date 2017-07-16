@@ -13,4 +13,7 @@ void test_mean_and_covariance_prediction();
 // Test radar measurement prediction
 void test_predict_radar_measurement();
 
+// Test update of state mean and covariance matrix with radar measurements.
+void test_update_radar_state();
+
 #endif
