@@ -219,6 +219,8 @@ int main(int argc, char **argv)
           result.rmse_y = RMSE[1];
           result.rmse_vx = RMSE[2];
           result.rmse_vy = RMSE[3];
+          result.nis_lidar = ukf.nis_lidar_;
+          result.nis_radar = ukf.nis_radar_;
 
           printOutput(result);
 

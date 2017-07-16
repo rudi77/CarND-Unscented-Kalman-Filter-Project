@@ -24,6 +24,8 @@ public:
   double rmse_y;  // RSME of y
   double rmse_vx; // RSME of vx
   double rmse_vy; // RSME of vy
+  double nis_lidar;
+  double nis_radar;
 
   string toString() const
   {
@@ -42,6 +44,8 @@ public:
       << "\t" << rmse_y
       << "\t" << rmse_vx
       << "\t" << rmse_vy
+      << "\t" << nis_lidar
+      << "\t" << nis_radar
       << endl;
 
     return ss.str();

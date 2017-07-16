@@ -213,7 +213,9 @@ void test_update_radar_state()
   meas_package.sensor_type_ = MeasurementPackage::RADAR;
   meas_package.raw_measurements_ = z;
 
-  ukf.UpdateRadarState(meas_package, z_pred, S, Zsig);
+  auto z_diff_out = VectorXd(ukf.n_zr_);
+
+  ukf.UpdateRadarState(meas_package, z_pred, S, Zsig, &z_diff_out);
 
   //print result
   cout << "Updated state x: " << endl << ukf.x_ << endl;
