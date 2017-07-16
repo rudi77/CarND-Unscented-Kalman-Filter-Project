@@ -4,6 +4,8 @@
 #include <math.h>
 #include "ukf.h"
 #include "tools.h"
+#include "input_parser.h"
+#include "tests.h"
 
 using namespace std;
 
@@ -13,21 +15,68 @@ using json = nlohmann::json;
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
 // else the empty string "" will be returned.
-std::string hasData(std::string s) {
+string hasData(string s) {
   auto found_null = s.find("null");
   auto b1 = s.find_first_of("[");
   auto b2 = s.find_first_of("]");
-  if (found_null != std::string::npos) {
+
+  if (found_null != string::npos) 
+  {
     return "";
   }
-  else if (b1 != std::string::npos && b2 != std::string::npos) {
+  
+  if (b1 != string::npos && b2 != string::npos) 
+  {
     return s.substr(b1, b2 - b1 + 1);
   }
   return "";
 }
 
-int main()
+
+void printUsage()
 {
+  cout << "Usage: UnscentedKF [-a | -p | -c | -r | -h]" << endl;
+  cout << "CmdLine args description:" << endl;
+  cout << "-a   Test sigmapoint augmentation" << endl;
+  cout << "-p   Test sigmapoint prediction" << endl;
+  cout << "-c   Test mean and covariance prediction" << endl;
+  cout << "-r   Test radar measurement prediction" << endl;
+  cout << "-h            Help description" << endl;
+}
+
+int main(int argc, char **argv)
+{
+  InputParser input(argc, argv);
+  if (input.cmdOptionExists("-h"))
+  {
+    printUsage();
+    return 0;
+  }
+
+  if (input.cmdOptionExists("-a"))
+  {
+    test_sigmapoint_augmentation();
+    return 0;
+  }
+
+  if (input.cmdOptionExists("-p"))
+  {
+    test_sigmapoint_prediction();
+    return 0;
+  }
+  
+  if (input.cmdOptionExists("-c"))
+  {
+    test_mean_and_covariance_prediction();
+    return 0;
+  }
+
+  if (input.cmdOptionExists("-r"))
+  {
+    test_predict_radar_measurement();
+    return 0;
+  }
+
   uWS::Hub h;
 
   // Create a Kalman Filter instance

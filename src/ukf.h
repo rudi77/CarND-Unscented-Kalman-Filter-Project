@@ -60,6 +60,12 @@ public:
   ///* State dimension
   int n_x_;
 
+  ///* Radar dimension
+  int n_zr_;
+
+  ///* Laser dimension
+  int n_zl_;
+
   ///* Augmented state dimension
   int n_aug_;
 
@@ -102,16 +108,27 @@ public:
    */
   void UpdateRadar(MeasurementPackage meas_package);
 
-public:
   void AugmentedSigmaPoints(MatrixXd* Xsig_out) const;
   
-  void SigmaPointPrediction(MatrixXd* Xsig_out, const MatrixXd& Xsig_aug, const double delta_t);
+  void SigmaPointPrediction(const MatrixXd& Xsig_aug, const double delta_t);
   
   void PredictMeanAndCovariance(VectorXd* x_pred, MatrixXd* P_pred);
+
+  /**
+   * Transform SigmaPoints into measurement space and calculate the 
+   * mean and the covariance matrix of the predicted measurement.
+   * No need for Sigma Point generation. Re-use Sigma points from prediction step. 
+   * @param z_out The predicted mean
+   * @param S_out The predicted covariance
+   * @param Zsig_out The sigma points in the measurement space
+   */
+  void PredictRadarMeasurement(VectorXd* z_out, MatrixXd* S_out, MatrixXd* Zsig_out);
   
-  void PredictRadarMeasurement(VectorXd* z_out, MatrixXd* S_out);
-  
-  void UpdateState(VectorXd* x_out, MatrixXd* P_out);
+  void UpdateRadarState(const MeasurementPackage& meas_package, const VectorXd& z_out, const MatrixXd& S_out, const MatrixXd& Zsig);
+
+  void PredictLaserMeasurement(VectorXd* z_out, MatrixXd* S_out);
+
+  void UpdateLaserState(VectorXd* x_out, MatrixXd* P_out);
 };
 
 #endif /* UKF_H */
