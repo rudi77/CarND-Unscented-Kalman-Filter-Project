@@ -36,12 +36,12 @@ UKF::UKF() {
   time_us_ = 0;
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  //std_a_ = 3;
-  std_a_ = 30;
+  std_a_ = 3;
+  //std_a_ = 30;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  //std_yawdd_ = 0.7;
-  std_yawdd_ = 30;
+  std_yawdd_ = 0.7;
+  //std_yawdd_ = 30;
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -465,10 +465,6 @@ void UKF::UpdateRadarState(const MeasurementPackage& meas_package, const VectorX
   //update state mean and covariance matrix
   x_ = x_ + K * z_diff;
   P_ = P_ - K * S_pred * K.transpose();
-
-  //print result
-  cout << "Updated state x: " << endl << x_ << endl;
-  cout << "Updated state covariance P: " << endl << P_ << endl;
 }
 
 ////////////////////////////////// end update methods //////////////////////////////////////////

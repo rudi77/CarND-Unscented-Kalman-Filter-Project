@@ -1,11 +1,14 @@
 #include <uWS/uWS.h>
 #include <iostream>
+#include <fstream>
+#include <functional>
 #include "json.hpp"
 #include <math.h>
 #include "ukf.h"
 #include "tools.h"
 #include "input_parser.h"
 #include "tests.h"
+#include "ResultOutput.h"
 
 using namespace std;
 
@@ -35,53 +38,54 @@ string hasData(string s) {
 
 void printUsage()
 {
-  cout << "Usage: UnscentedKF [-a | -p | -c | -r | -u | -h]" << endl;
+  cout << "Usage: UnscentedKF [-t | -f filename| -h]" << endl;
   cout << "CmdLine args description:" << endl;
-  cout << "-a   Test sigmapoint augmentation" << endl;
-  cout << "-p   Test sigmapoint prediction" << endl;
-  cout << "-c   Test mean and covariance prediction" << endl;
-  cout << "-r   Test radar measurement prediction" << endl;
-  cout << "-u   Test update mean and covariance by radar measurements" << endl;
+  cout << "-t   Call test methods" << endl;
+  cout << "-f filename   Path to the output file" << endl;
   cout << "-h            Help description" << endl;
 }
 
 int main(int argc, char **argv)
 {
   InputParser input(argc, argv);
+
   if (input.cmdOptionExists("-h"))
   {
     printUsage();
     return 0;
   }
 
-  if (input.cmdOptionExists("-a"))
+  if (input.cmdOptionExists("-t"))
   {
     test_sigmapoint_augmentation();
-    return 0;
-  }
-
-  if (input.cmdOptionExists("-p"))
-  {
     test_sigmapoint_prediction();
-    return 0;
-  }
-  
-  if (input.cmdOptionExists("-c"))
-  {
     test_mean_and_covariance_prediction();
-    return 0;
-  }
-
-  if (input.cmdOptionExists("-r"))
-  {
     test_predict_radar_measurement();
+    test_update_radar_state();
+
     return 0;
   }
 
-  if (input.cmdOptionExists("-u"))
+  function<void(const ResultOutput&)> printOutput;
+  fstream resultStream;
+
+  if (input.cmdOptionExists("-f"))
   {
-    test_update_radar_state();
-    return 0;
+    const auto& filename = input.getCmdOption("-f");
+
+    if (!filename.empty()) {
+      resultStream.open(filename.c_str(), fstream::out);
+
+      printOutput = [&resultStream](const ResultOutput& result)
+      {
+        resultStream << result.toString();
+        resultStream.flush();
+      };
+    }
+    else
+    {
+      printOutput = [](const ResultOutput& result) {;};
+    }
   }
 
   uWS::Hub h;
@@ -93,7 +97,7 @@ int main(int argc, char **argv)
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
 
-  h.onMessage([&ukf, &estimations, &ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&ukf, &estimations, &ground_truth, &printOutput](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -193,6 +197,30 @@ int main(int argc, char **argv)
           msgJson["rmse_vy"] = RMSE(3);
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+
+          //Output file format :
+          //est_px est_py est_vx est_vy meas_px meas_py gt_px gt_py gt_vx gt_vy rmse_x rmse_y rmse_vx rmse_vy
+          auto currentMeasurement = meas_package.currentMeasurement();
+          auto m_px = currentMeasurement[0];
+          auto m_py = currentMeasurement[1];
+
+          ResultOutput result;
+          result.p_x = p_x;
+          result.p_y = p_y;
+          result.v1 = v1;
+          result.v2 = v2;
+          result.m_px = m_px;
+          result.m_py = m_py;
+          result.x_gt = x_gt;
+          result.y_gt = y_gt;
+          result.vx_gt = vx_gt;
+          result.vy_gt = vy_gt;
+          result.rmse_x = RMSE[0];
+          result.rmse_y = RMSE[1];
+          result.rmse_vx = RMSE[2];
+          result.rmse_vy = RMSE[3];
+
+          printOutput(result);
 
         }
       }

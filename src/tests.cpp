@@ -7,6 +7,9 @@ using namespace std;
 // Test SigmaPoint Augmentation
 void test_sigmapoint_augmentation()
 {
+  cout << "Test creation of AugmentedSigmaPoints" << endl;
+  cout << "=====================================" << endl << endl;
+
   auto n_x = 5;
   auto n_aug = 7;
 
@@ -37,12 +40,15 @@ void test_sigmapoint_augmentation()
 
   ukf.AugmentedSigmaPoints(&Xsig_aug);
 
-  cout << "Xsig_aug = " << endl << Xsig_aug << endl;
+  cout << "Xsig_aug = " << endl << Xsig_aug << endl << endl;;
 }
 
 // Test SigmaPoint Prediction
 void test_sigmapoint_prediction()
 {
+  cout << "Testing SigmaPoint prediction" << endl;
+  cout << "=============================" << endl << endl;
+
   UKF ukf;
   
   //create example sigma point matrix
@@ -60,11 +66,14 @@ void test_sigmapoint_prediction()
 
   ukf.SigmaPointPrediction(Xsig_aug, delta_t);
 
-  cout << "Xsig_pred = " << endl << ukf.Xsig_pred_ << endl;
+  cout << "Xsig_pred = " << endl << ukf.Xsig_pred_ << endl << endl;
 }
 
 void test_mean_and_covariance_prediction()
 {
+  cout << "Testing mean and covariance matrix prediction" << endl;
+  cout << "=============================================" << endl << endl;
+
   UKF ukf;
 
   //create example matrix with predicted sigma points
@@ -89,13 +98,16 @@ void test_mean_and_covariance_prediction()
   cout << "Predicted state" << endl;
   cout << x << endl;
 
-  cout << "Predicted covariance matrix" << endl;
+  cout << "Predicted covariance matrix" << endl << endl;
   cout << P << endl;
 
 }
 
 void test_predict_radar_measurement()
 {
+  cout << "Testing mean and covariance matrix prediction using RADAR measurements" << endl;
+  cout << "======================================================================" << endl << endl;
+
   UKF ukf;
 
   ukf.std_radr_   = 0.3;
@@ -126,11 +138,14 @@ void test_predict_radar_measurement()
 
   cout << "z_pred: " << endl << z_pred << endl;
 
-  cout << "S: " << endl << S_pred << endl;
+  cout << "S: " << endl << S_pred << endl << endl;
 }
 
 void test_update_radar_state()
 {
+  cout << "Testing updating mean state and covariance matrix using RADAR measurements" << endl;
+  cout << "==========================================================================" << endl << endl;
+
   UKF ukf;
 
   //create example matrix with predicted sigma points
@@ -202,5 +217,5 @@ void test_update_radar_state()
 
   //print result
   cout << "Updated state x: " << endl << ukf.x_ << endl;
-  cout << "Updated state covariance P: " << endl << ukf.P_ << endl;
+  cout << "Updated state covariance P: " << endl << ukf.P_ << endl << endl;
 }
