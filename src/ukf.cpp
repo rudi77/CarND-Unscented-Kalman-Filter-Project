@@ -76,11 +76,12 @@ UKF::UKF() {
   // them to calculate the mean and covariance of the predicted state.
   // The weights invert the spreading of the sigma points.
   weights_ = VectorXd::Zero(2 * n_aug_ + 1);
+
   weights_[0] = lambda_ / (lambda_ + n_aug_);
 
   for (auto i = 1; i < 2 * n_aug_ + 1; i++)
   {
-    weights_[i] = 0.5 * weights_[0];
+    weights_[i] = 0.5 * (lambda_ + n_aug_);
   }
 }
 
@@ -90,12 +91,14 @@ UKF::~UKF() {}
  * @param {MeasurementPackage} meas_package The latest measurement data of
  * either radar or laser.
  */
-void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
-  // Init state vector and state covariance matrix
+void UKF::ProcessMeasurement(MeasurementPackage meas_package) 
+{
   if (!is_initialized_)
   {
     if (meas_package.sensor_type_ == MeasurementPackage::LASER)
     {
+      cout << "ProcessMeasurement init with LASER" << endl;
+
       auto px = meas_package.raw_measurements_[0];
       auto py = meas_package.raw_measurements_[1];
 
@@ -103,16 +106,18 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     }
     else if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
     {
+      cout << "ProcessMeasurement init with RADAR" << endl;
+
       // Convert radar from polar to cartesian coordinates and initialize state.
-      auto ro = meas_package.raw_measurements_[0];
-      auto theta = meas_package.raw_measurements_[1];
-      auto rodot = meas_package.raw_measurements_[2];
+      auto ro     = meas_package.raw_measurements_[0];
+      auto theta  = meas_package.raw_measurements_[1];
+      auto rodot  = meas_package.raw_measurements_[2];
 
       auto px = cos(theta) * ro;
       auto py = sin(theta) * ro;
       auto vx = rodot * cos(theta);
       auto vy = rodot * sin(theta);
-      auto v = sqrt(vx*vx + vy*vy);
+      auto v  = sqrt(vx*vx + vy*vy);
 
       x_ << px, py, v, 0, 0;
     }
@@ -127,55 +132,55 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   }
   else
   {
+    // 1.) Prediction Step:
+    // For the prediction step we use the Process Model
+    // The prediction step is independent from the measurement model
+    // Predict state and covariance matrix
     
+    // elapsed time between k and k+1 in seconds
+    auto delta_t = (meas_package.timestamp_ - time_us_) / 1000000.0;
+
+    Prediction(delta_t);
+
+    // 2.)Update Step:
+    // Here we use the RADAR or LASER measurement model
+    if (meas_package.sensor_type_ == MeasurementPackage::LASER)
+    {
+      UpdateLidar(meas_package);
+    }
+    else if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
+    {
+      UpdateRadar(meas_package);
+    }
+    else
+    {
+      // throw exception
+    }
+
+    // Update time
+    time_us_ = meas_package.timestamp_;
   }
 }
+
+////////////////////////////////// start prediction methods //////////////////////////////////////////
 
 /**
  * Predicts sigma points, the state, and the state covariance matrix.
  * @param {double} delta_t the change in time (in seconds) between the last
  * measurement and this one.
  */
-void UKF::Prediction(double delta_t) {
-  /**
-  TODO:
+void UKF::Prediction(double delta_t) 
+{
+  // 1.) Calc augemented sigma points
+  auto Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
+  AugmentedSigmaPoints(&Xsig_aug);
 
-  Complete this function! Estimate the object's location. Modify the state
-  vector, x_. Predict sigma points, the state, and the state covariance matrix.
-  */
+  // 2.) Predict sigma points
+  SigmaPointPrediction(&Xsig_pred_, Xsig_aug, delta_t);
+
+  // 3.) Predict covariance matrix
+  PredictMeanAndCovariance(&x_, &P_);
 }
-
-/**
- * Updates the state and the state covariance matrix using a laser measurement.
- * @param {MeasurementPackage} meas_package
- */
-void UKF::UpdateLidar(MeasurementPackage meas_package) {
-  /**
-  TODO:
-
-  Complete this function! Use lidar data to update the belief about the object's
-  position. Modify the state vector, x_, and covariance, P_.
-
-  You'll also need to calculate the lidar NIS.
-  */
-}
-
-/**
- * Updates the state and the state covariance matrix using a radar measurement.
- * @param {MeasurementPackage} meas_package
- */
-void UKF::UpdateRadar(MeasurementPackage meas_package) {
-  /**
-  TODO:
-
-  Complete this function! Use radar data to update the belief about the object's
-  position. Modify the state vector, x_, and covariance, P_.
-
-  You'll also need to calculate the radar NIS.
-  */
-}
-
-////////////////////////////////// prediction methods //////////////////////////////////////////
 
 void UKF::AugmentedSigmaPoints(MatrixXd* Xsig_out) const
 {
@@ -211,7 +216,7 @@ void UKF::AugmentedSigmaPoints(MatrixXd* Xsig_out) const
   }
 
   //print result
-  std::cout << "Xsig_aug = " << std::endl << Xsig_aug << std::endl;
+  //cout << "Xsig_aug = " << endl << Xsig_aug << endl;
 
   //write result
   *Xsig_out = Xsig_aug;
@@ -223,12 +228,12 @@ void UKF::SigmaPointPrediction(MatrixXd* Xsig_out, const MatrixXd& Xsig_aug, con
   for (auto i = 0; i < 2 * n_aug_ + 1; i++)
   {
     //extract values for better readability
-    auto p_x = Xsig_aug(0, i);
-    auto p_y = Xsig_aug(1, i);
-    auto v = Xsig_aug(2, i);
-    auto yaw = Xsig_aug(3, i);
-    auto yawd = Xsig_aug(4, i);
-    auto nu_a = Xsig_aug(5, i);
+    auto p_x      = Xsig_aug(0, i);
+    auto p_y      = Xsig_aug(1, i);
+    auto v        = Xsig_aug(2, i);
+    auto yaw      = Xsig_aug(3, i);
+    auto yawd     = Xsig_aug(4, i);
+    auto nu_a     = Xsig_aug(5, i);
     auto nu_yawdd = Xsig_aug(6, i);
 
     //predicted state values
@@ -244,8 +249,8 @@ void UKF::SigmaPointPrediction(MatrixXd* Xsig_out, const MatrixXd& Xsig_aug, con
       py_p = p_y + v * delta_t * sin(yaw);
     }
 
-    auto v_p = v;
-    auto yaw_p = yaw + yawd * delta_t;
+    auto v_p    = v;
+    auto yaw_p  = yaw + yawd * delta_t;
     auto yawd_p = yawd;
 
     //add noise
@@ -270,24 +275,10 @@ void UKF::SigmaPointPrediction(MatrixXd* Xsig_out, const MatrixXd& Xsig_aug, con
 
 void UKF::PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out)
 {
+  //predicted state mean
+
   //create vector for predicted state
   auto x = VectorXd(n_x_);
-
-  //create covariance matrix for prediction
-  auto P = MatrixXd(n_x_, n_x_);
-
-  // set weights
-  auto weight_0 = lambda_ / (lambda_ + n_aug_);
-  weights_(0) = weight_0;
-
-  //2n+1 weights
-  for (auto i = 1; i < 2 * n_aug_ + 1; i++)
-  {
-    auto weight = 0.5 / (n_aug_ + lambda_);
-    weights_(i) = weight;
-  }
-
-  //predicted state mean
   x.fill(0.0);
 
   //iterate over sigma points
@@ -297,6 +288,9 @@ void UKF::PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out)
   }
 
   //predicted state covariance matrix
+
+  //create covariance matrix for prediction
+  auto P = MatrixXd(n_x_, n_x_);
   P.fill(0.0);
 
   //iterate over sigma points
@@ -312,12 +306,50 @@ void UKF::PredictMeanAndCovariance(VectorXd* x_out, MatrixXd* P_out)
   }
 
   //print result
-  std::cout << "Predicted state" << std::endl;
-  std::cout << x << std::endl;
-  std::cout << "Predicted covariance matrix" << std::endl;
-  std::cout << P << std::endl;
+  cout << "Predicted state" << endl;
+  cout << x << endl;
+  cout << "Predicted covariance matrix" << endl;
+  cout << P << endl;
 
   //write result
   *x_out = x;
   *P_out = P;
 }
+
+////////////////////////////////// end prediction methods //////////////////////////////////////////
+
+
+
+////////////////////////////////// start update methods //////////////////////////////////////////
+
+/**
+ * Updates the state and the state covariance matrix using a laser measurement.
+ * @param {MeasurementPackage} meas_package
+ */
+void UKF::UpdateLidar(MeasurementPackage meas_package) {
+  /**
+  TODO:
+
+  Complete this function! Use lidar data to update the belief about the object's
+  position. Modify the state vector, x_, and covariance, P_.
+
+  You'll also need to calculate the lidar NIS.
+  */
+}
+
+/**
+ * Updates the state and the state covariance matrix using a radar measurement.
+ * @param {MeasurementPackage} meas_package
+ */
+void UKF::UpdateRadar(MeasurementPackage meas_package) {
+  /**
+  TODO:
+
+  Complete this function! Use radar data to update the belief about the object's
+  position. Modify the state vector, x_, and covariance, P_.
+
+  You'll also need to calculate the radar NIS.
+  */
+}
+
+////////////////////////////////// end update methods //////////////////////////////////////////

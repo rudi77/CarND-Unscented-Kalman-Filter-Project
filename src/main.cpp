@@ -34,11 +34,10 @@ int main()
   UKF ukf;
 
   // used to compute the RMSE later
-  Tools tools;
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
 
-  h.onMessage([&ukf, &tools, &estimations, &ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&ukf, &estimations, &ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -112,10 +111,10 @@ int main()
           //Push the current estimated x,y positon from the Kalman filter's state vector
           VectorXd estimate(4);
 
-          auto p_x = ukf.x_(0);
-          auto p_y = ukf.x_(1);
-          auto v = ukf.x_(2);
-          auto yaw = ukf.x_(3);
+          auto p_x  = ukf.x_(0);
+          auto p_y  = ukf.x_(1);
+          auto v    = ukf.x_(2);
+          auto yaw  = ukf.x_(3);
 
           auto v1 = cos(yaw)*v;
           auto v2 = sin(yaw)*v;
@@ -127,7 +126,7 @@ int main()
 
           estimations.push_back(estimate);
 
-          auto RMSE = tools.CalculateRMSE(estimations, ground_truth);
+          auto RMSE = Tools::CalculateRMSE(estimations, ground_truth);
 
           json msgJson;
           msgJson["estimate_x"] = p_x;
@@ -175,6 +174,7 @@ int main()
   });
 
   int port = 4567;
+
   if (h.listen(port))
   {
     std::cout << "Listening to port " << port << std::endl;
