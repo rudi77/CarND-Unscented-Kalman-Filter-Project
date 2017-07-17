@@ -35,6 +35,8 @@ CmdLine args description:
 [ukf_plot]: ./images/ukf_plot.png "UKF plot"
 [ekf_rsme]: ./images/ekf_rsme.png "EKF RSME"
 [ukf_rsme]: ./images/ukf_rsme.png "UKF RSME"
+[ekf_rsme_plot]: ./images/ekf_rsme_plot.png "EKF RSME"
+[ukf_rsme_plot]: ./images/ukf_rsme_plot.png "UKF RSME"
 [nis_lidar]: ./images/nis_lidar.png "NIS LIDAR"
 [nis_radar]: ./images/nis_radar.png "NIS RADAR"
 [nis_table]: ./images/nis_distribution_table.png"
@@ -44,6 +46,10 @@ CmdLine args description:
 EKF              |  UKF
 :---------------------:|:-------------------------:
 ![text alt][ekf_plot] |  ![text alt][ukf_plot] 
+
+EKF RSME             |  UKF RSME
+:---------------------:|:-------------------------:
+![text alt][ekf_rsme_plot] |  ![text alt][ukf_rsme_plot] 
 
 ## NIS LIDAR and RADAR Plots
 The following plot show the NIS (normalized innovation squared) values for the chosen longitudinal and angular acceleration noise parameters.
