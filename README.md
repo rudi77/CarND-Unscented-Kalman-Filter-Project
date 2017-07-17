@@ -41,10 +41,9 @@ CmdLine args description:
 
 ## EKF vs. UKF
 
- EKF                  |  UKF
-:------------------- :|:-------------------------:
-![text alt][ekf_plot] |  ![text alt][ukf_plt] 
-![text alt][ekf_rsme] |  ![text alt][ukf_rsme] 
+EKF              |  UKF
+:---------------------:|:-------------------------:
+![text alt][ekf_plot] |  ![text alt][ukf_plot] 
 
 ## NIS LIDAR and RADAR Plots
 The following plot show the NIS (normalized innovation squared) values for the chosen longitudinal and angular acceleration noise parameters.
