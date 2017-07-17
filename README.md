@@ -29,6 +29,9 @@ CmdLine args description:
 -h             Help description
 ```
 
+## Data Visualiztion
+I've implemented a notebook that I used for data visualization. It is based on the jupyter notebooks from Mercedes and can be found [here](https://github.com/rudi77/CarND-Unscented-Kalman-Filter-Project/blob/master/data/visualization.ipynb)
+
 [//]: # (Image References)
 
 [ekf_plot]: ./images/ekf_plot.png "EKF plot"
