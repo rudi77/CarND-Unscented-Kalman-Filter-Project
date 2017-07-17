@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     return 0;
   }
 
-  function<void(const ResultOutput&)> printOutput;
+  function<void(const ResultOutput&)> printOutput = [](const ResultOutput& result) {;};
   fstream resultStream;
 
   if (input.cmdOptionExists("-f"))
@@ -81,10 +81,6 @@ int main(int argc, char **argv)
         resultStream << result.toString();
         resultStream.flush();
       };
-    }
-    else
-    {
-      printOutput = [](const ResultOutput& result) {;};
     }
   }
 
@@ -205,6 +201,7 @@ int main(int argc, char **argv)
           auto m_py = currentMeasurement[1];
 
           ResultOutput result;
+          result.sensor = meas_package.sensor_type_ == MeasurementPackage::LASER ? 'L' : 'R';
           result.p_x = p_x;
           result.p_y = p_y;
           result.v1 = v1;
@@ -219,8 +216,7 @@ int main(int argc, char **argv)
           result.rmse_y = RMSE[1];
           result.rmse_vx = RMSE[2];
           result.rmse_vy = RMSE[3];
-          result.nis_lidar = ukf.nis_lidar_;
-          result.nis_radar = ukf.nis_radar_;
+          result.nis_value = meas_package.sensor_type_ == MeasurementPackage::LASER ? ukf.nis_radar_ : ukf.nis_lidar_;
 
           printOutput(result);
 

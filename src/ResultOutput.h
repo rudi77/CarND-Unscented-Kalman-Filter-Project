@@ -10,27 +10,29 @@ using namespace std;
 class ResultOutput
 {
 public:
-  double p_x;     // estimated x
-  double p_y;     // estimated y
-  double v1;      // estimated velocity x
-  double v2;      // estimated velocity y
-  double m_px;    // measured x
-  double m_py;    // measured y
-  double x_gt;    // ground truth x
-  double y_gt;    // ground truth y
-  double vx_gt;   // ground truth velocity x
-  double vy_gt;   // ground truth velocity y
-  double rmse_x;  // RSME of x
-  double rmse_y;  // RSME of y
-  double rmse_vx; // RSME of vx
-  double rmse_vy; // RSME of vy
-  double nis_lidar;
-  double nis_radar;
+  char sensor;      // 'L' for LIDAR and 'R' for RADAR
+  double p_x;       // estimated x
+  double p_y;       // estimated y
+  double v1;        // estimated velocity x
+  double v2;        // estimated velocity y
+  double m_px;      // measured x
+  double m_py;      // measured y
+  double x_gt;      // ground truth x
+  double y_gt;      // ground truth y
+  double vx_gt;     // ground truth velocity x
+  double vy_gt;     // ground truth velocity y
+  double rmse_x;    // RSME of x
+  double rmse_y;    // RSME of y
+  double rmse_vx;   // RSME of vx
+  double rmse_vy;   // RSME of vy
+  double nis_value; // RADAR or LIDAR
+  
 
   string toString() const
   {
     stringstream ss;
-    ss << p_x
+    ss << sensor
+      << "\t" << p_x
       << "\t" << p_y
       << "\t" << v1
       << "\t" << v2
@@ -44,8 +46,7 @@ public:
       << "\t" << rmse_y
       << "\t" << rmse_vx
       << "\t" << rmse_vy
-      << "\t" << nis_lidar
-      << "\t" << nis_radar
+      << "\t" << nis_value
       << endl;
 
     return ss.str();
